@@ -1,40 +1,35 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-commands = {
-  "acc": lambda x, acc, i: (acc + x, i + 1),
-  "jmp": lambda x, acc, i: (acc    , i + x),
-  "nop": lambda x, acc, i: (acc    , i + 1)
-}
-
-def execute(instructions):
-  i, acc, visited = 0, 0, set()
-
-  while i < len(instructions):
-    if i in visited:
-      return acc, False
-    visited.add(i)
-    cmd, nbr = instructions[i].split()
-    acc, i = commands[cmd](int(nbr), acc, i)
-     
-  return acc, True
-  
-def find_corruption(instructions):
-  for j in range(len(instructions)):
-    cmd, nbr = instructions[j].split()
-    if cmd != "acc":
-      instructions[j] = "jmp " + nbr if cmd == "nop" else "nop " + nbr
-      acc, finished = execute(instructions)
-      instructions[j] = cmd + " " + nbr
-      if finished: return acc
+def is_valid(numbers, number):
+  visited = set()
+  for n in numbers:
+    if number - n in visited:
+      return True
+    visited.add(n)
+  return False
 
 def main():
   with open('./input.txt', 'r') as f:
-    instructions = list(f.read().split('\n'))
-     
-  print("Part 1: {}".format(execute(instructions)[0]))
-  print("Part 2: {}".format(find_corruption(instructions)))
+    numbers = [int(x) for x in f.readlines()]
+    
+  i = 25
+  while is_valid(numbers[i-25 : i], numbers[i]):
+    i += 1
+  invalid = numbers[i]
+  print("Part 1: {}".format(invalid))
 
+  tail, head, rolling_sum = 0, 0, numbers[0]
+  while rolling_sum != invalid:
+    if rolling_sum < invalid:
+      head += 1
+      rolling_sum += numbers[head]
+    else:
+      rolling_sum -= numbers[tail]
+      tail += 1
+    
+  ans = min(numbers[tail:head]) + max(numbers[tail:head])
+  print("Part 2: {}".format(ans))
 
 if __name__ == '__main__':
   main()
